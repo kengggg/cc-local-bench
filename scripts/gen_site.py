@@ -80,7 +80,12 @@ def _load_trial_json(path: Path):
 
 def parse_combo_dir(combo_dir: Path):
     """Aggregate per-trial data for one combo directory. Returns None if no trials."""
-    trial_files = sorted(combo_dir.glob("trial-*.json"))
+    # Filter out sidecar JSONs (trial-N.power.json etc) — only the canonical
+    # trial-N.json has the .trial field and is the per-trial summary.
+    trial_files = sorted(
+        tp for tp in combo_dir.glob("trial-*.json")
+        if ".power." not in tp.name
+    )
     if not trial_files:
         return None
     trials = []

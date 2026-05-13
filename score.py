@@ -66,6 +66,10 @@ def parse_stream(stream_path: Path) -> dict:
 def load_combo(combo_dir: Path) -> dict:
     trials = []
     for tp in sorted(combo_dir.glob("trial-*.json")):
+        # Skip sidecar files (trial-N.power.json etc) — only the canonical
+        # trial-N.json has the .trial field.
+        if ".power." in tp.name:
+            continue
         with tp.open() as f:
             trial = json.load(f)
         stream_path = combo_dir / f"trial-{trial['trial']}.stream.ndjson"

@@ -10,7 +10,7 @@
 <header class="page-head">
   <h1>cc-local-bench</h1>
   <p class="tagline">How well does Claude Code drive local-LLM inference runtimes on an agentic coding task?</p>
-  <p class="run-stamp">Generated 2026-05-13 09:26 · 5 models compared</p>
+  <p class="run-stamp">Generated 2026-05-13 10:42 · 8 models compared</p>
 </header>
 
 <nav class="toc">
@@ -50,13 +50,13 @@ and skills don't leak into the model's context. See the
 
 <section id="summary">
 <h2>Executive Summary</h2>
-<table class="summary"><thead><tr><th>Combo</th><th>Backend</th><th>Green</th><th>Median wall</th><th>Spread</th><th>Med. turns</th><th>Med. tools</th><th>Cold-start</th></tr></thead><tbody><tr><td><a href="#combo-llamacpp-qwen3coder30b"><code>llamacpp-qwen3coder30b</code></a></td><td>llamacpp</td><td class="ok">3/3</td><td>60.4 s</td><td>12.9 s</td><td>25</td><td>8</td><td>10.2 s</td></tr><tr><td><a href="#combo-llamacpp-qwen3codernext80b"><code>llamacpp-qwen3codernext80b</code></a></td><td>llamacpp</td><td class="ok">3/3</td><td>66.0 s</td><td>68.0 s</td><td>13</td><td>5</td><td>6.1 s</td></tr><tr><td><a href="#combo-ollama-gptoss20b"><code>ollama-gptoss20b</code></a></td><td>ollama</td><td class="ok">3/3</td><td>68.7 s</td><td>94.9 s</td><td>25</td><td>8</td><td>5.1 s</td></tr><tr><td><a href="#combo-ollama-qwen3coder30b"><code>ollama-qwen3coder30b</code></a></td><td>ollama</td><td class="ok">3/3</td><td>79.6 s</td><td>40.7 s</td><td>22</td><td>7</td><td>5.4 s</td></tr><tr><td><a href="#combo-llamacpp-qwen25coder14b"><code>llamacpp-qwen25coder14b</code></a></td><td>llamacpp</td><td class="bad">0/3</td><td>31.7 s</td><td>28.0 s</td><td>1</td><td>0</td><td>4.1 s</td></tr></tbody></table>
+<table class="summary"><thead><tr><th>Combo</th><th>Backend</th><th>Green</th><th>Median wall</th><th>Spread</th><th>Med. turns</th><th>Med. tools</th><th>Cold-start</th><th>Med. energy</th></tr></thead><tbody><tr><td><a href="#combo-llamacpp-qwen3coder30b"><code>llamacpp-qwen3coder30b</code></a></td><td>llamacpp</td><td class="ok">3/3</td><td>53.5 s</td><td>117.0 s</td><td>25</td><td>8</td><td>10.1 s</td><td>1208 J <span class="muted">(335 mWh)</span></td></tr><tr><td><a href="#combo-llamacpp-qwen3coder30b-q5kxl"><code>llamacpp-qwen3coder30b-q5kxl</code></a></td><td>llamacpp</td><td class="ok">3/3</td><td>63.3 s</td><td>8.4 s</td><td>22</td><td>7</td><td>14.2 s</td><td>1515 J <span class="muted">(421 mWh)</span></td></tr><tr><td><a href="#combo-llamacpp-qwen3codernext80b"><code>llamacpp-qwen3codernext80b</code></a></td><td>llamacpp</td><td class="ok">3/3</td><td>66.0 s</td><td>68.0 s</td><td>13</td><td>5</td><td>6.1 s</td><td><span class="muted">—</span></td></tr><tr><td><a href="#combo-ollama-gptoss20b"><code>ollama-gptoss20b</code></a></td><td>ollama</td><td class="ok">3/3</td><td>68.7 s</td><td>94.9 s</td><td>25</td><td>8</td><td>5.1 s</td><td><span class="muted">—</span></td></tr><tr><td><a href="#combo-ollama-qwen3coder30b"><code>ollama-qwen3coder30b</code></a></td><td>ollama</td><td class="ok">3/3</td><td>79.6 s</td><td>40.7 s</td><td>22</td><td>7</td><td>5.4 s</td><td><span class="muted">—</span></td></tr><tr><td><a href="#combo-llamacpp-qwen3coder30b-q6kxl"><code>llamacpp-qwen3coder30b-q6kxl</code></a></td><td>llamacpp</td><td class="warn">2/3</td><td>68.5 s</td><td>6.6 s</td><td>22</td><td>7</td><td>16.2 s</td><td>1532 J <span class="muted">(426 mWh)</span></td></tr><tr><td><a href="#combo-llamacpp-deepseekcoderv2lite"><code>llamacpp-deepseekcoderv2lite</code></a></td><td>llamacpp</td><td class="bad">0/3</td><td>11.9 s</td><td>4.3 s</td><td>1</td><td>0</td><td>10.2 s</td><td>229 J <span class="muted">(64 mWh)</span></td></tr><tr><td><a href="#combo-llamacpp-qwen25coder14b"><code>llamacpp-qwen25coder14b</code></a></td><td>llamacpp</td><td class="bad">0/3</td><td>31.7 s</td><td>28.0 s</td><td>1</td><td>0</td><td>4.1 s</td><td><span class="muted">—</span></td></tr></tbody></table>
 </section>
 
 <section id="findings">
 <h2>Auto-generated Findings</h2>
 <p class="muted">Computed from the data above, not human-written. Regenerated every time the site rebuilds.</p>
-<div class="finding finding-red"><h4>Model doesn&#x27;t tool-call</h4><p><code>llamacpp-qwen25coder14b</code> never emitted a structured <code>tool_use</code> block — every trial ended at turn 1 with <code>stop_reason=end_turn</code>. The model isn't trained for agentic tool use; it describes tool calls in prose instead of invoking them. Unfit for Claude Code regardless of how good its raw outputs look.</p></div><div class="finding finding-green"><h4>Speed leader</h4><p><code>llamacpp-qwen3coder30b</code> has the lowest median wall (60.4 s) among 100% green combos.</p></div><div class="finding finding-green"><h4>Reliability leader</h4><p><code>llamacpp-qwen3coder30b</code> has the tightest run-to-run spread (12.9 s) — most predictable wall time.</p></div><div class="finding finding-green"><h4>Multi-axis champion</h4><p><code>llamacpp-qwen3coder30b</code> wins 2 of 2 axes (speed, reliability). The most defensible default pick.</p></div><div class="finding finding-yellow"><h4>High variance: llamacpp-qwen3codernext80b</h4><p>Spread is 68 s — 103% of median (66.0 s). Worst trial took 129.2 s. The model thrashes when stuck.</p></div><div class="finding finding-yellow"><h4>High variance: ollama-gptoss20b</h4><p>Spread is 95 s — 138% of median (68.7 s). Worst trial took 138.0 s. The model thrashes when stuck.</p></div><div class="finding finding-yellow"><h4>High variance: ollama-qwen3coder30b</h4><p>Spread is 41 s — 51% of median (79.6 s). Worst trial took 118.7 s. The model thrashes when stuck.</p></div>
+<div class="finding finding-red"><h4>Model doesn&#x27;t tool-call</h4><p><code>llamacpp-deepseekcoderv2lite</code> never emitted a structured <code>tool_use</code> block — every trial ended at turn 1 with <code>stop_reason=end_turn</code>. The model isn't trained for agentic tool use; it describes tool calls in prose instead of invoking them. Unfit for Claude Code regardless of how good its raw outputs look.</p></div><div class="finding finding-red"><h4>Model doesn&#x27;t tool-call</h4><p><code>llamacpp-qwen25coder14b</code> never emitted a structured <code>tool_use</code> block — every trial ended at turn 1 with <code>stop_reason=end_turn</code>. The model isn't trained for agentic tool use; it describes tool calls in prose instead of invoking them. Unfit for Claude Code regardless of how good its raw outputs look.</p></div><div class="finding finding-green"><h4>Speed leader</h4><p><code>llamacpp-qwen3coder30b</code> has the lowest median wall (53.5 s) among 100% green combos.</p></div><div class="finding finding-green"><h4>Reliability leader</h4><p><code>llamacpp-qwen3coder30b-q5kxl</code> has the tightest run-to-run spread (8.4 s) — most predictable wall time.</p></div><div class="finding finding-green"><h4>Efficiency leader</h4><p><code>llamacpp-qwen3coder30b</code> uses the least energy per solve (median 1208 J ≈ 335 mWh) among 100% green combos.</p></div><div class="finding finding-green"><h4>Multi-axis champion</h4><p><code>llamacpp-qwen3coder30b</code> wins 2 of 3 axes (speed, efficiency). The most defensible default pick.</p></div><div class="finding finding-yellow"><h4>High variance: llamacpp-qwen3coder30b</h4><p>Spread is 117 s — 219% of median (53.5 s). Worst trial took 164.7 s. The model thrashes when stuck.</p></div><div class="finding finding-yellow"><h4>High variance: llamacpp-qwen3codernext80b</h4><p>Spread is 68 s — 103% of median (66.0 s). Worst trial took 129.2 s. The model thrashes when stuck.</p></div><div class="finding finding-yellow"><h4>High variance: ollama-gptoss20b</h4><p>Spread is 95 s — 138% of median (68.7 s). Worst trial took 138.0 s. The model thrashes when stuck.</p></div><div class="finding finding-yellow"><h4>High variance: ollama-qwen3coder30b</h4><p>Spread is 41 s — 51% of median (79.6 s). Worst trial took 118.7 s. The model thrashes when stuck.</p></div><div class="finding finding-yellow"><h4>Destructive cleanup: llamacpp-qwen3coder30b-q6kxl</h4><p>trial 2 exited cleanly (model declared success) but pytest collected zero tests. The agent deleted the test or implementation file as part of 'cleanup' after verifying its solution via a hand-rolled script. Higher-precision quants seem more prone to this.</p></div>
 </section>
 
 <section id="details">
@@ -69,35 +69,85 @@ and skills don't leak into the model's context. See the
       <span class="kvp"><strong>Backend</strong> llamacpp</span>
       <span class="kvp"><strong>Model</strong> <code>unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf</code></span>
       <span class="kvp"><strong>Alias</strong> <code>qwen3-coder</code></span>
-      <span class="kvp"><strong>Run</strong> 2026-05-12 19:18</span>
+      <span class="kvp"><strong>Run</strong> 2026-05-13 10:18</span>
     </p>
   </header>
   <div class="combo-grid">
     <div class="stat">
       <div class="stat-label">Cold-start</div>
-      <div class="stat-val">10.2 s</div>
+      <div class="stat-val">10.1 s</div>
     </div>
     <div class="stat">
       <div class="stat-label">Wall (min / median / max)</div>
-      <div class="stat-val">52.6 / <strong>60.4</strong> / 65.5 s</div>
+      <div class="stat-val">47.7 / <strong>53.5</strong> / 164.7 s</div>
     </div>
     <div class="stat">
       <div class="stat-label">Spread</div>
-      <div class="stat-val">12.9 s</div>
+      <div class="stat-val">117.0 s</div>
     </div>
     <div class="stat">
       <div class="stat-label">Median turns / tool calls</div>
       <div class="stat-val">25 / 8</div>
     </div>
+    <div class="stat">
+      <div class="stat-label">Energy per solve (median)</div>
+      <div class="stat-val">1208 J · 335 mWh <span class="muted">(Δ 1172 J above 0.7 W idle floor)</span></div>
+      <div class="muted">GPU 22.3 W avg · CPU 1.0 W avg</div>
+    </div>
   </div>
   <div class="chart-row">
     <div class="chart-col">
       <div class="chart-label">Per-trial wall time</div>
-      <svg class="wall-bars" viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="14.0" width="26" height="80.0" class="ok-fill" rx="2"/><text x="18.0" y="106" text-anchor="middle" class="bar-axis">T1</text><text x="18.0" y="11.0" text-anchor="middle" class="bar-value">65s</text><rect x="45" y="29.808780605785216" width="26" height="64.19121939421478" class="ok-fill" rx="2"/><text x="58.0" y="106" text-anchor="middle" class="bar-axis">T2</text><text x="58.0" y="26.808780605785216" text-anchor="middle" class="bar-value">53s</text><rect x="85" y="20.231763871660448" width="26" height="73.76823612833955" class="ok-fill" rx="2"/><text x="98.0" y="106" text-anchor="middle" class="bar-axis">T3</text><text x="98.0" y="17.231763871660448" text-anchor="middle" class="bar-value">60s</text></svg>
+      <svg class="wall-bars" viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="14.0" width="26" height="80.0" class="ok-fill" rx="2"/><text x="18.0" y="106" text-anchor="middle" class="bar-axis">T1</text><text x="18.0" y="11.0" text-anchor="middle" class="bar-value">165s</text><rect x="45" y="70.84725083490244" width="26" height="23.152749165097557" class="ok-fill" rx="2"/><text x="58.0" y="106" text-anchor="middle" class="bar-axis">T2</text><text x="58.0" y="67.84725083490244" text-anchor="middle" class="bar-value">48s</text><rect x="85" y="67.99752965661794" width="26" height="26.002470343382058" class="ok-fill" rx="2"/><text x="98.0" y="106" text-anchor="middle" class="bar-axis">T3</text><text x="98.0" y="64.99752965661794" text-anchor="middle" class="bar-value">54s</text></svg>
     </div>
     <div class="chart-col">
       <div class="chart-label">Tool-call distribution (sum across trials)</div>
-      <svg class="tool-bar" viewBox="0 0 320 22" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="160.0" height="22" fill="#3b82f6"><title>Bash=11</title></rect><rect x="160.0" y="0" width="116.36363636363637" height="22" fill="#10b981"><title>Read=8</title></rect><rect x="276.3636363636364" y="0" width="43.63636363636363" height="22" fill="#f59e0b"><title>Edit=3</title></rect></svg><div class="legend"><span class="legend-item"><span class="dot" style="background:#3b82f6"></span>Bash=11</span> <span class="legend-item"><span class="dot" style="background:#10b981"></span>Read=8</span> <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>Edit=3</span></div>
+      <svg class="tool-bar" viewBox="0 0 320 22" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="166.4" height="22" fill="#3b82f6"><title>Bash=13</title></rect><rect x="166.4" y="0" width="89.60000000000001" height="22" fill="#10b981"><title>Read=7</title></rect><rect x="256.0" y="0" width="64.0" height="22" fill="#f59e0b"><title>Edit=5</title></rect></svg><div class="legend"><span class="legend-item"><span class="dot" style="background:#3b82f6"></span>Bash=13</span> <span class="legend-item"><span class="dot" style="background:#10b981"></span>Read=7</span> <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>Edit=5</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="combo-card" id="combo-llamacpp-qwen3coder30b-q5kxl">
+  <header>
+    <h3>llamacpp-qwen3coder30b-q5kxl <span class="badge ok">3/3 green</span></h3>
+    <p class="meta">
+      <span class="kvp"><strong>Backend</strong> llamacpp</span>
+      <span class="kvp"><strong>Model</strong> <code>unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q5_K_XL.gguf</code></span>
+      <span class="kvp"><strong>Alias</strong> <code>qwen3-coder-q5</code></span>
+      <span class="kvp"><strong>Run</strong> 2026-05-13 10:06</span>
+    </p>
+  </header>
+  <div class="combo-grid">
+    <div class="stat">
+      <div class="stat-label">Cold-start</div>
+      <div class="stat-val">14.2 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Wall (min / median / max)</div>
+      <div class="stat-val">63.3 / <strong>63.3</strong> / 71.8 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Spread</div>
+      <div class="stat-val">8.4 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Median turns / tool calls</div>
+      <div class="stat-val">22 / 7</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Energy per solve (median)</div>
+      <div class="stat-val">1515 J · 421 mWh <span class="muted">(Δ 1471 J above 0.7 W idle floor)</span></div>
+      <div class="muted">GPU 23.0 W avg · CPU 1.0 W avg</div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-col">
+      <div class="chart-label">Per-trial wall time</div>
+      <svg class="wall-bars" viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="14.0" width="26" height="80.0" class="ok-fill" rx="2"/><text x="18.0" y="106" text-anchor="middle" class="bar-axis">T1</text><text x="18.0" y="11.0" text-anchor="middle" class="bar-value">72s</text><rect x="45" y="23.377622279198732" width="26" height="70.62237772080127" class="ok-fill" rx="2"/><text x="58.0" y="106" text-anchor="middle" class="bar-axis">T2</text><text x="58.0" y="20.377622279198732" text-anchor="middle" class="bar-value">63s</text><rect x="85" y="23.38608820972297" width="26" height="70.61391179027703" class="ok-fill" rx="2"/><text x="98.0" y="106" text-anchor="middle" class="bar-axis">T3</text><text x="98.0" y="20.38608820972297" text-anchor="middle" class="bar-value">63s</text></svg>
+    </div>
+    <div class="chart-col">
+      <div class="chart-label">Tool-call distribution (sum across trials)</div>
+      <svg class="tool-bar" viewBox="0 0 320 22" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="145.45454545454544" height="22" fill="#3b82f6"><title>Bash=10</title></rect><rect x="145.45454545454544" y="0" width="130.9090909090909" height="22" fill="#10b981"><title>Read=9</title></rect><rect x="276.3636363636364" y="0" width="43.63636363636363" height="22" fill="#f59e0b"><title>Edit=3</title></rect></svg><div class="legend"><span class="legend-item"><span class="dot" style="background:#3b82f6"></span>Bash=10</span> <span class="legend-item"><span class="dot" style="background:#10b981"></span>Read=9</span> <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>Edit=3</span></div>
     </div>
   </div>
 </section>
@@ -222,6 +272,96 @@ and skills don't leak into the model's context. See the
   </div>
 </section>
 
+<section class="combo-card" id="combo-llamacpp-qwen3coder30b-q6kxl">
+  <header>
+    <h3>llamacpp-qwen3coder30b-q6kxl <span class="badge warn">2/3 green</span></h3>
+    <p class="meta">
+      <span class="kvp"><strong>Backend</strong> llamacpp</span>
+      <span class="kvp"><strong>Model</strong> <code>unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL.gguf</code></span>
+      <span class="kvp"><strong>Alias</strong> <code>qwen3-coder-q6</code></span>
+      <span class="kvp"><strong>Run</strong> 2026-05-13 10:25</span>
+    </p>
+  </header>
+  <div class="combo-grid">
+    <div class="stat">
+      <div class="stat-label">Cold-start</div>
+      <div class="stat-val">16.2 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Wall (min / median / max)</div>
+      <div class="stat-val">62.5 / <strong>68.5</strong> / 69.0 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Spread</div>
+      <div class="stat-val">6.6 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Median turns / tool calls</div>
+      <div class="stat-val">22 / 7</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Energy per solve (median)</div>
+      <div class="stat-val">1532 J · 426 mWh <span class="muted">(Δ 1479 J above 0.8 W idle floor)</span></div>
+      <div class="muted">GPU 22.1 W avg · CPU 0.9 W avg</div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-col">
+      <div class="chart-label">Per-trial wall time</div>
+      <svg class="wall-bars" viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="14.568659387481489" width="26" height="79.43134061251851" class="ok-fill" rx="2"/><text x="18.0" y="106" text-anchor="middle" class="bar-axis">T1</text><text x="18.0" y="11.568659387481489" text-anchor="middle" class="bar-value">69s</text><rect x="45" y="21.617999891008367" width="26" height="72.38200010899163" class="bad-fill" rx="2"/><text x="58.0" y="106" text-anchor="middle" class="bar-axis">T2</text><text x="58.0" y="18.617999891008367" text-anchor="middle" class="bar-value">62s</text><rect x="85" y="14.0" width="26" height="80.0" class="ok-fill" rx="2"/><text x="98.0" y="106" text-anchor="middle" class="bar-axis">T3</text><text x="98.0" y="11.0" text-anchor="middle" class="bar-value">69s</text></svg>
+    </div>
+    <div class="chart-col">
+      <div class="chart-label">Tool-call distribution (sum across trials)</div>
+      <svg class="tool-bar" viewBox="0 0 320 22" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="160.0" height="22" fill="#3b82f6"><title>Bash=10</title></rect><rect x="160.0" y="0" width="112.0" height="22" fill="#10b981"><title>Read=7</title></rect><rect x="272.0" y="0" width="48.0" height="22" fill="#f59e0b"><title>Edit=3</title></rect></svg><div class="legend"><span class="legend-item"><span class="dot" style="background:#3b82f6"></span>Bash=10</span> <span class="legend-item"><span class="dot" style="background:#10b981"></span>Read=7</span> <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>Edit=3</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="combo-card" id="combo-llamacpp-deepseekcoderv2lite">
+  <header>
+    <h3>llamacpp-deepseekcoderv2lite <span class="badge bad">0/3 green</span></h3>
+    <p class="meta">
+      <span class="kvp"><strong>Backend</strong> llamacpp</span>
+      <span class="kvp"><strong>Model</strong> <code>bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF::DeepSeek-Coder-V2-Lite-Instruct-Q6_K.gguf</code></span>
+      <span class="kvp"><strong>Alias</strong> <code>deepseek-coder-v2-lite</code></span>
+      <span class="kvp"><strong>Run</strong> 2026-05-13 10:31</span>
+    </p>
+  </header>
+  <div class="combo-grid">
+    <div class="stat">
+      <div class="stat-label">Cold-start</div>
+      <div class="stat-val">10.2 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Wall (min / median / max)</div>
+      <div class="stat-val">9.3 / <strong>11.9</strong> / 13.6 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Spread</div>
+      <div class="stat-val">4.3 s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Median turns / tool calls</div>
+      <div class="stat-val">1 / 0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Energy per solve (median)</div>
+      <div class="stat-val">229 J · 64 mWh <span class="muted">(Δ 219 J above 0.8 W idle floor)</span></div>
+      <div class="muted">GPU 17.9 W avg · CPU 1.1 W avg</div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-col">
+      <div class="chart-label">Per-trial wall time</div>
+      <svg class="wall-bars" viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="14.0" width="26" height="80.0" class="bad-fill" rx="2"/><text x="18.0" y="106" text-anchor="middle" class="bar-axis">T1</text><text x="18.0" y="11.0" text-anchor="middle" class="bar-value">14s</text><rect x="45" y="24.38352310766949" width="26" height="69.61647689233051" class="bad-fill" rx="2"/><text x="58.0" y="106" text-anchor="middle" class="bar-axis">T2</text><text x="58.0" y="21.38352310766949" text-anchor="middle" class="bar-value">12s</text><rect x="85" y="39.4710637700612" width="26" height="54.5289362299388" class="bad-fill" rx="2"/><text x="98.0" y="106" text-anchor="middle" class="bar-axis">T3</text><text x="98.0" y="36.4710637700612" text-anchor="middle" class="bar-value">9s</text></svg>
+    </div>
+    <div class="chart-col">
+      <div class="chart-label">Tool-call distribution (sum across trials)</div>
+      <div class="tool-empty">No tool calls in this run.</div>
+    </div>
+  </div>
+</section>
+
 <section class="combo-card" id="combo-llamacpp-qwen25coder14b">
   <header>
     <h3>llamacpp-qwen25coder14b <span class="badge bad">0/3 green</span></h3>
@@ -268,29 +408,77 @@ and skills don't leak into the model's context. See the
 <h2>Discussion</h2>
 <p class="muted">Narrative observations. Edit <code>docs/discussion.md</code> and re-run <code>scripts/gen_site.py</code> to update.</p>
 <div class="discussion"><h3>Headline takeaway</h3>
-<p>For the offline-coding-on-a-48 GB-Mac use case, <strong>llama.cpp + Qwen3-Coder-30B-A3B (UD-Q4_K_XL)</strong> wins on every meaningful axis: lowest median wall among 100% green combos, tightest run-to-run spread, comfortable disk and memory footprint (16.45 GB on disk, ~22 GB peak with KV cache), no daemon overhead.</p>
-<p>This recommendation survives a 5-combo head-to-head test that included two specifically chosen comparators which <em>could</em> have dethroned it: a much bigger MoE (Qwen3-Coder-Next 80B/3B) and a smaller dense coder (Qwen2.5-Coder-14B). Neither did, for different and informative reasons.</p>
-<h3>The decisive finding: agentic training trumps size or quality</h3>
-<p>Qwen2.5-Coder-14B Q6_K — a recent, high-quality, dense coding model — <strong>failed 3/3 trials</strong> despite being half the size of the winner. Every trial ended in <code>num_turns: 1, stop_reason: end_turn</code>. The model produced a multi-paragraph prose explanation of what it would do, with tool-call JSON embedded as plain text inside the response, then stopped. It never emitted a structured <code>tool_use</code> block.</p>
-<p>Qwen2.5-Coder was trained for completion / chat. Qwen3-Coder was specifically post-trained with <strong>long-horizon Agent RL</strong> for the exact loop we measure. Same model family lineage, completely different operational behavior in an agentic harness. <strong>For Claude Code, pick from the agentic-trained lineage only.</strong> Don&#x27;t be tempted by a smaller or newer-looking general coder unless you&#x27;ve verified it actually tool-calls.</p>
-<h3>Qwen3-Coder-Next 80B/3B isn&#x27;t a free upgrade on this hardware</h3>
-<p>Same active-param count (3B) as the 30B-A3B, <strong>twice the disk and memory footprint</strong>, marginally similar speed on this task. The 80B&#x27;s bigger knowledge pool doesn&#x27;t translate to faster wall-clock; we paid ~33 GB on disk for a slightly slower median (66 s vs 60 s) and 5× worse variance (68 s spread vs 13 s). The only thing Next gives you on a 48 GB Mac is <strong>256K native context</strong> — and if you&#x27;re not regularly hitting the 30B&#x27;s 32K limit, that&#x27;s dead weight.</p>
-<p>The general rule: per-token compute is set by <em>active</em> params, not total params. An 80B MoE with 3B active and a 30B MoE with 3B active have similar per-token cost. The 80B has more specialized expert knowledge baked in, but for a small, narrow task like this benchmark, that&#x27;s invisible.</p>
-<h3>Inference engine matters: llama.cpp &gt; Ollama for the same model</h3>
-<p>Apples-to-apples (Qwen3-Coder-30B-A3B), llama.cpp is <strong>24% faster on median (60 s vs 80 s) and 3× tighter on variance (13 s vs 41 s)</strong> than Ollama. Ollama&#x27;s daemon scheduling and keep-alive bookkeeping adds real per-request overhead; for focused coding sessions where you&#x27;ve already committed the model into GPU memory, llama-server&#x27;s directness pays off. The trade-off: you manage the server lifecycle yourself (<code>llama-server &amp;</code> to start, <code>kill %1</code> to stop), which is barely a trade-off for a laptop user.</p>
-<h3>Gotchas worth recording</h3>
+<p>For the <strong>offline-coding-on-a-48 GB-Mac</strong> use case, <strong>llama.cpp + Qwen3-Coder-30B-A3B (UD-Q4_K_XL)</strong> wins on <strong>2 of 3 Pareto axes</strong> (speed, efficiency) and is the most defensible default pick. It uses <strong>~335 mWh per solve</strong> in steady-state inference — meaning ~300 task-solves per full charge of a 100 Wh laptop battery (display + idle floor not included).</p>
+<p>This recommendation now survives a <strong>7-combo head-to-head</strong> that includes:</p>
 <ul>
-<li><strong>Plain Q4_K_M is broken for some MoE GGUFs on Apple Silicon.</strong> Unsloth&#x27;s <code>Q4_K_M.gguf</code> for Qwen3-Coder-30B-A3B produces degenerate <code>@@@@@</code> output regardless of inference flags. Their <code>UD-Q4_K_XL.gguf</code> (&quot;Unsloth Dynamic&quot; purpose-built for MoE expert layers) produces sane output. Always sanity-probe a newly downloaded quant with <code>temperature=0</code> before running the bench.</li>
-<li><strong>Ollama&#x27;s <code>/v1</code> endpoint requires exact-tag matching.</strong> <code>gpt-oss:20b</code> works; <code>gpt-oss</code> does not. The OpenAI shim doesn&#x27;t do the fuzzy matching that the native <code>/api/*</code> endpoint does. The error surfaces as a Claude-Code-side message but the 404 actually comes from Ollama.</li>
-<li><strong>Claude Code talks Anthropic <code>/v1/messages</code>, not OpenAI <code>/v1/chat/completions</code>.</strong> Ollama and llama-server both natively implement <code>/v1/messages</code>. If you point Claude Code at a backend that only speaks OpenAI shape, you need a translator proxy.</li>
-<li><strong>Cwd isolation matters.</strong> <code>claude -p</code> resolves relative paths against its cwd. If you run it from the project root, it&#x27;ll happily read and write <code>fixture/...</code> (the failing baseline) instead of the per-trial tmpdir. The harness now wraps the call in <code>(cd &quot;$WORK_DIR&quot; &amp;&amp; claude …)</code> and pre-flights for fixture pollution.</li>
+<li>Two engines (Ollama vs llama.cpp)</li>
+<li>Three precisions of the same model (Q4_K_XL, Q5_K_XL, Q6_K_XL)</li>
+<li>Three different model families (Qwen3-Coder, Qwen2.5-Coder, DeepSeek-Coder-V2-Lite, gpt-oss)</li>
+<li>One radically different architecture (Qwen3-Coder-Next 80B/3B with Gated DeltaNet)</li>
+<li>Two confirmed &quot;doesn&#x27;t tool-call&quot; failures (Qwen2.5-Coder-14B, DeepSeek-V2-Lite)</li>
+</ul>
+<h3>Finding #1 (the most important): agentic training trumps size, quality, AND family</h3>
+<p>We now have <strong>two independent confirmations</strong> of this hypothesis:</p>
+<ul>
+<li><strong>Qwen2.5-Coder-14B Q6_K</strong> (12 GB, dense, Alibaba lineage) — failed 3/3, <code>num_turns=1, stop_reason=end_turn</code>.</li>
+<li><strong>DeepSeek-Coder-V2-Lite Q6_K</strong> (13 GB, MoE 16B/2.4B-active, DeepSeek lineage) — failed 3/3, same pattern.</li>
+</ul>
+<p>Both models are competent at code <em>completion</em> and chat. Neither was post-trained with <strong>long-horizon Agent RL</strong> for tool use. So neither emits structured <code>tool_use</code> blocks; instead they output multi-paragraph prose explanations with tool-call JSON embedded as plain text.</p>
+<p>The two failing models share <strong>nothing</strong> architecturally: one is dense, one is MoE; one is from Alibaba, one from DeepSeek; both are post-2025 instruction-tuned coding models. They fail in the same way for the same reason. <strong>The signal is real and lineage-agnostic.</strong></p>
+<p><strong>Practical takeaway:</strong> when picking a local model for Claude Code, the only filter that matters is <em>&quot;was this model post-trained for agentic tool use?&quot;</em> If you can&#x27;t find an explicit &quot;Agent RL&quot; or &quot;long-horizon agentic&quot; note in the model card, assume it can&#x27;t drive Claude Code&#x27;s loop. Verify with a 1-line curl probe to <code>/v1/messages</code> with a tool definition before downloading 13 GB.</p>
+<h3>Finding #2: precision doesn&#x27;t help, and may HURT</h3>
+<p>Three quants of the same model (Qwen3-Coder-30B-A3B), same engine (llama.cpp), same prompt, on the same hardware:</p>
+<p>|  | Median wall | Spread | Median energy | Green | Disk | |---|---:|---:|---:|---:|---:| | <strong>UD-Q4_K_XL</strong> | <strong>53.5 s</strong> | 117.0 s* | <strong>1208 J</strong> | 3/3 | 16.45 GB | | UD-Q5_K_XL | 63.3 s | 8.4 s | 1515 J | 3/3 | 20.25 GB | | UD-Q6_K_XL | 68.5 s | 6.5 s | 1532 J | <strong>2/3</strong> ⚠️ | 24.53 GB |</p>
+<p>\*Q4&#x27;s spread is inflated by a single 164.7 s outlier trial (the other two were 47.7 s and 53.5 s). The model has a long-tail thrashing distribution on this task that 3 trials can&#x27;t fully characterize.</p>
+<p>Three things to note: 1. <strong>Speed is flat to slightly worse with higher precision.</strong> Per-token compute is bound by the 3 B active params, not the bytes-per-param. Higher quant just means more bytes per param shipped through cache hierarchies on each token. 2. <strong>Energy is ~25–27% higher</strong> at Q5/Q6 vs Q4. Slightly slower wall × slightly hotter GPU = noticeably more joules. 3. <strong>Q6_K_XL went 2/3 green for an unexpected reason.</strong> See finding #3.</p>
+<p><strong>Practical takeaway:</strong> for a Qwen3-Coder-30B-A3B deployment, Q4_K_XL is the right pick. Don&#x27;t pay disk and battery for precision that doesn&#x27;t translate into agentic competence.</p>
+<h3>Finding #3: the &quot;destructive cleanup&quot; failure mode (Q6 trial 2)</h3>
+<p>The harness&#x27;s auto-finding detector flagged this and we&#x27;re documenting it as a real model behavior. In Q6 trial 2: 1. The agent wrote a correct-looking implementation of <code>format_phone_number</code>. 2. It verified the implementation via a <strong>hand-rolled Python script</strong> (printed test cases through the function, checked the outputs by eye). 3. It then ran <code>rm test_phone_utils.py phone_utils.py</code> to &quot;clean up.&quot; 4. The next pytest run collected zero tests; harness scored 0/6.</p>
+<p>In a real Claude Code session, this would be an angry developer with <code>git status</code> showing <code>D  test_phone_utils.py</code> and a model emitting &quot;I have successfully implemented the function!&quot;</p>
+<p>It&#x27;s a single trial and we can&#x27;t tell if Q6 is genuinely more prone or if we got unlucky. But it&#x27;s the kind of failure that would be invisible without <code>pytest</code> as ground truth. <strong>Watch for it.</strong></p>
+<h3>Finding #4: Qwen3-Coder-Next 80B/3B isn&#x27;t a free upgrade on 48 GB</h3>
+<p>Same active-param count (3 B) as the 30B-A3B, <strong>twice the disk and memory footprint</strong> at Q3 (33 GB vs 16.45 GB), marginally similar speed (66.0 s vs 53.5 s median), and <strong>5× worse variance</strong> (68 s spread vs 12.9 s in the original pre-power run). The 80B&#x27;s bigger knowledge pool doesn&#x27;t translate to faster wall-clock; we paid ~33 GB on disk for a slightly slower median. The only differentiator on a 48 GB Mac is <strong>256 K native context</strong>, which is dead weight for typical Claude Code sessions under 32 K.</p>
+<p>The general rule: per-token compute is set by <em>active</em> params, not total. An 80B MoE with 3 B active and a 30B MoE with 3 B active have similar per-token cost. Bigger total just specializes the experts.</p>
+<h3>Finding #5: engine matters — llama.cpp &gt; Ollama for the same model</h3>
+<p>Apples-to-apples (Qwen3-Coder-30B-A3B):</p>
+<ul>
+<li>Ollama: 79.6 s median, 40.7 s spread</li>
+<li>llama.cpp: 53.5 s median (3/3), 117 s spread (outlier-inflated; pre-power run was 12.9 s)</li>
+</ul>
+<p>llama.cpp wins. Ollama&#x27;s daemon scheduling and keep-alive bookkeeping adds real per-request overhead; for focused coding sessions, llama-server&#x27;s directness pays off.</p>
+<h3>Finding #6: energy reality check</h3>
+<p>With <code>--with-power</code> instrumentation we can finally quantify the &quot;how much battery does an offline coding session cost?&quot; question.</p>
+<p>For the recommended combo (Q4_K_XL):</p>
+<ul>
+<li><strong>Median energy per solve</strong>: 1208 J = <strong>0.335 Wh</strong> (GPU + CPU + ANE on SoC)</li>
+<li><strong>Idle floor</strong>: ~50–110 mW package power (when model loaded but no inference)</li>
+<li><strong>Delta over idle</strong>: 1172 J = 0.326 Wh (the &quot;actually inference&quot; cost)</li>
+<li><strong>GPU avg during inference</strong>: 21.8 W</li>
+<li><strong>CPU avg during inference</strong>: 0.96 W (the model is GPU-bound, as expected)</li>
+</ul>
+<p>Per-task math on a M4 Pro 16-inch (100 Wh battery):</p>
+<ul>
+<li>Pure inference-only ceiling: 100 / 0.335 ≈ <strong>300 solves per full charge</strong></li>
+<li>Real-world: cut that in half once you add display, browser, IDE, idle baselines, and the fact that you don&#x27;t only do one solve per minute. <strong>Realistic estimate: 100–150 useful Claude Code interactions per charge.</strong></li>
+</ul>
+<p>These are SoC-only numbers. Wall-plug consumption adds ~30–40% (DC-DC conversion, display, charger losses) but doesn&#x27;t affect the <em>comparison between models</em>. For &quot;is model X more battery-efficient than model Y,&quot; package mW is the right axis.</p>
+<h3>Finding #7: 3 trials isn&#x27;t enough to characterize the long tail</h3>
+<p>Q4&#x27;s pre-power run gave a 12.9 s spread. The with-power re-run gave a 117 s spread (because of one 164.7 s outlier trial). Same model, same flags, same hardware — different sampling paths.</p>
+<p>The agentic loop has a heavy-tailed wall-time distribution because there&#x27;s a non-zero probability the model gets stuck in an inefficient reasoning path. 3 trials gives us median + range but doesn&#x27;t tell us how often the long tail hits. For decisions, we want <strong>N=10 or higher</strong>. For now: read the median, ignore the spread when it&#x27;s outlier-dominated, watch for the <em>frequency</em> of outliers across runs.</p>
+<h3>Operational gotchas accumulated over the sessions</h3>
+<ul>
+<li><strong>Plain Q4_K_M is broken for some MoE GGUFs on Apple Silicon.</strong> Unsloth&#x27;s plain <code>Q4_K_M</code> for Qwen3-Coder-30B-A3B produces degenerate <code>@@@@@</code> output regardless of flags. Use Unsloth Dynamic (UD-Q4_K_XL).</li>
+<li><strong>Ollama&#x27;s <code>/v1</code> endpoint requires exact-tag matching.</strong> <code>gpt-oss:20b</code> works; <code>gpt-oss</code> doesn&#x27;t.</li>
+<li><strong>Claude Code uses Anthropic <code>/v1/messages</code>, not OpenAI <code>/v1/chat/completions</code>.</strong> Both Ollama and llama-server happen to implement <code>/v1/messages</code> natively. A backend that only speaks OpenAI shape needs a translator.</li>
+<li><strong>The <code>BACKEND_ENDPOINT</code> URL must NOT end with <code>/v1</code>.</strong> Claude Code appends <code>/v1/messages</code> itself. Trailing <code>/v1</code> causes silent failure.</li>
+<li><strong><code>claude -p</code> must run with <code>cwd=$WORK_DIR</code>.</strong> Otherwise it&#x27;ll happily edit (or <code>rm</code>) files in the project root, corrupting the benchmark&#x27;s failing baseline.</li>
 </ul>
 <h3>What to test next</h3>
 <ul>
-<li><strong>DeepSeek-Coder-V2 / V3</strong> — a different model lineage. The V3 series claims agentic training; worth a head-to-head against Qwen3-Coder-30B.</li>
-<li><strong>Qwen3-Coder-30B at higher quants</strong> (UD-Q5_K_M, UD-Q6_K) — does precision improve solve efficiency, or are we already at the diminishing-returns plateau?</li>
-<li><strong>A long-context benchmark fixture</strong> — a separate task that requires reading 30+ files (e.g. small refactor across a real codebase). The case where Qwen3-Coder-Next&#x27;s 256K context could finally earn its disk space.</li>
-<li><strong>Power / thermal measurement</strong> — wall-clock isn&#x27;t the full battery picture. A combo that&#x27;s slower per token but engages the GPU at lower TDP could net more useful work per battery percent. Out of scope for <code>cc-local-bench</code> as currently scoped, but interesting.</li>
+<li><strong>Long-context fixture</strong> — a real 30+ file refactor to give Qwen3-Coder-Next&#x27;s 256 K context a genuine workload (the user has one in mind).</li>
+<li><strong>More trials per combo</strong> — N=10 to characterize the long tail, not just the median.</li>
+<li><strong>Power on Ollama side</strong> — re-run the Ollama combos with <code>--with-power</code> to confirm the 24% wall-time gap also shows up in energy. Hypothesis: yes, Ollama uses more joules per solve because it runs longer at similar power.</li>
+<li><strong>DeepSeek-V4-Flash</strong> — when a deployable quant lands (current <code>V4-Flash</code> is 284 B / 13 B active and won&#x27;t fit), and it claims Agent RL post-training, worth a head-to-head.</li>
 </ul></div>
 </section>
 
@@ -299,7 +487,7 @@ and skills don't leak into the model's context. See the
 <p class="muted">Every benchmark run recorded under <code>results/</code>. The latest run per combo populates the per-model details above; earlier runs are kept for reference.</p>
 <table class="history">
   <thead><tr><th>Run directory</th><th>Timestamp</th><th>Combos in this run</th></tr></thead>
-  <tbody><tr><td><code>run-20260513-063328-llamacpp-qwen3codernext80b</code></td><td>2026-05-13 06:33</td><td>llamacpp-qwen3codernext80b</td></tr><tr><td><code>run-20260513-061930-llamacpp-qwen25coder14b</code></td><td>2026-05-13 06:19</td><td>llamacpp-qwen25coder14b</td></tr><tr><td><code>run-20260512-195720-ollama-gptoss20b</code></td><td>2026-05-12 19:57</td><td>ollama-gptoss20b</td></tr><tr><td><code>run-20260512-191858-llamacpp-qwen3coder30b</code></td><td>2026-05-12 19:18</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260512-191414-ollama-qwen3coder30b</code></td><td>2026-05-12 19:14</td><td>ollama-qwen3coder30b</td></tr><tr><td><code>run-20260512-191113-llamacpp-qwen3coder30b</code></td><td>2026-05-12 19:11</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260512-190612-smoke-llamacpp</code></td><td>2026-05-12 19:06</td><td>smoke-llamacpp-qwen05b</td></tr><tr><td><code>run-20260512-184223-smoke</code></td><td>2026-05-12 18:42</td><td>smoke-ollama-gptoss20b</td></tr><tr><td><code>run-20260512-183512-smoke</code></td><td>2026-05-12 18:35</td><td>smoke-ollama-gptoss20b</td></tr><tr><td><code>run-20260512-182852-smoke</code></td><td>2026-05-12 18:28</td><td>smoke-ollama-gptoss20b</td></tr><tr><td><code>run-20260512-181128-llamacpp-qwen3coder30b</code></td><td>2026-05-12 18:11</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260512-171856-round1</code></td><td>2026-05-12 17:18</td><td>ollama-qwen3coder30b</td></tr></tbody>
+  <tbody><tr><td><code>run-20260513-103112-llamacpp-deepseekcoderv2lite</code></td><td>2026-05-13 10:31</td><td>llamacpp-deepseekcoderv2lite</td></tr><tr><td><code>run-20260513-102535-llamacpp-qwen3coder30b-q6kxl</code></td><td>2026-05-13 10:25</td><td>llamacpp-qwen3coder30b-q6kxl</td></tr><tr><td><code>run-20260513-101851-llamacpp-qwen3coder30b</code></td><td>2026-05-13 10:18</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260513-100647-llamacpp-qwen3coder30b-q5kxl</code></td><td>2026-05-13 10:06</td><td>llamacpp-qwen3coder30b-q5kxl</td></tr><tr><td><code>run-20260513-063328-llamacpp-qwen3codernext80b</code></td><td>2026-05-13 06:33</td><td>llamacpp-qwen3codernext80b</td></tr><tr><td><code>run-20260513-061930-llamacpp-qwen25coder14b</code></td><td>2026-05-13 06:19</td><td>llamacpp-qwen25coder14b</td></tr><tr><td><code>run-20260512-195720-ollama-gptoss20b</code></td><td>2026-05-12 19:57</td><td>ollama-gptoss20b</td></tr><tr><td><code>run-20260512-191858-llamacpp-qwen3coder30b</code></td><td>2026-05-12 19:18</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260512-191414-ollama-qwen3coder30b</code></td><td>2026-05-12 19:14</td><td>ollama-qwen3coder30b</td></tr><tr><td><code>run-20260512-191113-llamacpp-qwen3coder30b</code></td><td>2026-05-12 19:11</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260512-190612-smoke-llamacpp</code></td><td>2026-05-12 19:06</td><td>smoke-llamacpp-qwen05b</td></tr><tr><td><code>run-20260512-184223-smoke</code></td><td>2026-05-12 18:42</td><td>smoke-ollama-gptoss20b</td></tr><tr><td><code>run-20260512-183512-smoke</code></td><td>2026-05-12 18:35</td><td>smoke-ollama-gptoss20b</td></tr><tr><td><code>run-20260512-182852-smoke</code></td><td>2026-05-12 18:28</td><td>smoke-ollama-gptoss20b</td></tr><tr><td><code>run-20260512-181128-llamacpp-qwen3coder30b</code></td><td>2026-05-12 18:11</td><td>llamacpp-qwen3coder30b</td></tr><tr><td><code>run-20260512-171856-round1</code></td><td>2026-05-12 17:18</td><td>ollama-qwen3coder30b</td></tr></tbody>
 </table>
 </section>
 

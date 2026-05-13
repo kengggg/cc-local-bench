@@ -1,0 +1,19 @@
+[
+  {
+    "name": "llamacpp-qwen3coder30b-q5kxl",
+    "backend": "llamacpp",
+    "model_id": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q5_K_XL.gguf",
+    "meta": {
+      "cold_start_seconds": 14.185468,
+      "endpoint": "http://localhost:8080",
+      "model": "qwen3-coder-q5"
+    },
+    "median_wall": 63.348776,
+    "min_wall": 63.341182,
+    "max_wall": 71.76057,
+    "green_rate": 1.0,
+    "median_turns": 22,
+    "median_tool_calls": 7,
+    "cold_start": 14.185468
+  }
+]

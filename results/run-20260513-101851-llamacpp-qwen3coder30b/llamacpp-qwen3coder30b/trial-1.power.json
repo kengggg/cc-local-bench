@@ -1,0 +1,32 @@
+{
+  "sample_count": 163,
+  "sample_interval_s": 1.0,
+  "duration_s": 163.0,
+  "cpu_mw": {
+    "avg": 815,
+    "max": 4097,
+    "min": 97
+  },
+  "gpu_mw": {
+    "avg": 22653,
+    "max": 33476,
+    "min": 4
+  },
+  "ane_mw": {
+    "avg": 0,
+    "max": 0,
+    "min": 0
+  },
+  "package_mw": {
+    "avg": 23468,
+    "max": 33575,
+    "min": 1412
+  },
+  "energy_joules": 3825.31,
+  "energy_wh": 1.0626,
+  "thermal_pressure_max": null,
+  "baseline_subtracted": true,
+  "delta_package_mw_avg": 22790,
+  "delta_energy_joules": 3714.77,
+  "baseline_package_mw_avg": 678
+}

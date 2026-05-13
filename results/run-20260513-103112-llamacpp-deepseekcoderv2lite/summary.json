@@ -1,0 +1,19 @@
+[
+  {
+    "name": "llamacpp-deepseekcoderv2lite",
+    "backend": "llamacpp",
+    "model_id": "bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF::DeepSeek-Coder-V2-Lite-Instruct-Q6_K.gguf",
+    "meta": {
+      "cold_start_seconds": 10.169117,
+      "endpoint": "http://localhost:8080",
+      "model": "deepseek-coder-v2-lite"
+    },
+    "median_wall": 11.860567,
+    "min_wall": 9.290101,
+    "max_wall": 13.629609,
+    "green_rate": 0.0,
+    "median_turns": 1,
+    "median_tool_calls": 0,
+    "cold_start": 10.169117
+  }
+]

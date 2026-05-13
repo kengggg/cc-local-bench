@@ -1,0 +1,47 @@
+{
+  "combo": "llamacpp-deepseekcoderv2lite",
+  "backend": "llamacpp",
+  "model_id": "bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF::DeepSeek-Coder-V2-Lite-Instruct-Q6_K.gguf",
+  "alias": "deepseek-coder-v2-lite",
+  "trial": 1,
+  "wall_clock_seconds": 13.629609000,
+  "claude_exit_code": 0,
+  "claude_timed_out": false,
+  "pytest_exit_code": 1,
+  "tests_passed": 0,
+  "tests_failed": 6,
+  "all_green": false,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-llamacpp-deepseekcoderv2lite-t1-XXXX.PpNQxdH1xB",
+  "power": {
+    "sample_count": 14,
+    "sample_interval_s": 1.0,
+    "duration_s": 14.0,
+    "cpu_mw": {
+      "avg": 1137,
+      "max": 2694,
+      "min": 354
+    },
+    "gpu_mw": {
+      "avg": 17089,
+      "max": 20299,
+      "min": 12
+    },
+    "ane_mw": {
+      "avg": 0,
+      "max": 0,
+      "min": 0
+    },
+    "package_mw": {
+      "avg": 18225,
+      "max": 22395,
+      "min": 1105
+    },
+    "energy_joules": 255.16,
+    "energy_wh": 0.0709,
+    "thermal_pressure_max": null,
+    "baseline_subtracted": true,
+    "delta_package_mw_avg": 17444,
+    "delta_energy_joules": 244.22,
+    "baseline_package_mw_avg": 781
+  }
+}

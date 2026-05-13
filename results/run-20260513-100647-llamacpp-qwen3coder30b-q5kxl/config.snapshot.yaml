@@ -1,0 +1,171 @@
+# cc-local-bench configuration
+# Each entry under `runs` defines one (backend, model) combination.
+# Each combo is run `trials` times; the median wall-clock is reported.
+
+# Number of trials per combo. Local inference is noisy — keep at 3.
+trials: 3
+
+# Hard timeout per Claude Code invocation (seconds). 10 min = catches stuck loops.
+timeout_seconds: 600
+
+# Cap on agentic turns. Generous enough for legitimate solves, tight enough to
+# fail-fast on models that can't drive the loop.
+max_turns: 25
+
+# The fixed agentic prompt sent to claude -p (a deliberately concise instruction).
+prompt: |
+  The tests in test_phone_utils.py are currently failing.
+  Implement format_phone_number in phone_utils.py so all 6 tests pass.
+  Run `pytest -q` after each change. Don't stop until every test is green.
+
+# Which tools Claude Code is allowed to use. Keep narrow so we're benchmarking
+# the agentic loop, not the model's ability to discover unusual tools.
+allowed_tools: "Read,Write,Edit,Bash"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SMOKE — fast end-to-end harness check. Single trial, short timeout, tiny model.
+# Goal: validate backend lifecycle + claude --bare wiring + pytest + score.py
+# without burning 30 min on the real benchmark. The model only needs to drive
+# the loop (i.e. emit at least one tool_use); it does not need to solve the task.
+#
+# Run with: ./run.sh smoke
+# ─────────────────────────────────────────────────────────────────────────────
+smoke:
+  - name: "smoke-ollama-gptoss20b"
+    backend: ollama
+    model_id: "gpt-oss:20b"
+    alias: "gpt-oss:20b"      # MUST match the exact Ollama tag — Ollama's /v1 endpoint
+                              # does NOT fuzzy-match (only its native /api/* does).
+    trials: 1
+    timeout_seconds: 180      # gpt-oss:20b finishes the loop in ~80–120s on M4 Pro
+    max_turns: 12
+
+# Plumbing smoke for the llamacpp backend. Uses a tiny known-good model
+# (Qwen2.5-0.5B Q4_K_M, ~400MB) — won't solve the task, but will exercise the
+# full pipeline: llama-server start → Claude Code via /v1/messages → tool_use →
+# pytest. A 0.5B model can't drive the agentic loop reliably, so green_rate is
+# not the success criterion here — non-zero tool_calls is.
+smoke-llamacpp:
+  - name: "smoke-llamacpp-qwen05b"
+    backend: llamacpp
+    model_id: "bartowski/Qwen2.5-0.5B-Instruct-GGUF::Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"
+    alias: "qwen-smoke"
+    trials: 1
+    timeout_seconds: 120
+    max_turns: 8
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ROUND 1 — Same reference model across 4 inference runtimes.
+# Reference model: Qwen3-Coder-30B-A3B (MoE, 3B active, ~17GB at Q4).
+# Adjust the `model_id` strings if your local tags differ.
+# ─────────────────────────────────────────────────────────────────────────────
+round1:
+  - name: "ollama-gptoss20b"
+    backend: ollama
+    model_id: "gpt-oss:20b"
+    alias: "gpt-oss:20b"
+    # gpt-oss:20b is 13 GB (smaller than qwen3-coder:30b's ~18 GB) and the smoke
+    # run completed in 40s — testing whether it can drive the full agentic loop
+    # reliably as a lighter travel option.
+
+  - name: "ollama-qwen3coder30b"
+    backend: ollama
+    model_id: "qwen3-coder:30b"
+    alias: "qwen3-coder:30b"   # Ollama's /v1 needs the exact tag (no fuzzy match)
+
+  - name: "llamacpp-qwen3coder30b"
+    backend: llamacpp
+    # Formats supported by backends/llamacpp.sh:
+    #   <hf_repo>                       — repo default
+    #   <hf_repo>:<quant>               — llama-server preset shortcut
+    #   <hf_repo>::<filename.gguf>      — explicit file (use when ":quant" 404s)
+    # NOTE: the PLAIN Q4_K_M of this MoE model produces degenerate `@@@@@` output
+    # under llama.cpp on M4 Pro (confirmed 2026-05-12, ggml 0.11.1). Use Unsloth's
+    # purpose-built UD-Q4_K_XL quant for MoE — slightly smaller (16.45 GB vs 17.28)
+    # and actually works. See CLAUDE.md "Broken-quant gotcha".
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf"
+    alias: "qwen3-coder"
+
+  - name: "lmstudio-gguf-qwen3coder30b"
+    backend: lmstudio_gguf
+    # Must be already downloaded via `lms get <id> --gguf`.
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF"
+    alias: "qwen3-coder"
+
+  - name: "lmstudio-mlx-qwen3coder30b"
+    backend: lmstudio_mlx
+    # Must be already downloaded via `lms get <id> --mlx`.
+    model_id: "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit"
+    alias: "qwen3-coder"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Extra coding-model comparators (added 2026-05-13)
+  # ───────────────────────────────────────────────────────────────────────────
+  - name: "llamacpp-qwen3codernext80b"
+    backend: llamacpp
+    # 80B/3B MoE with 256K context and Gated DeltaNet arch (newer than 30B-A3B).
+    # Q4 is too big for the M4 Pro's 40GB Metal working-set; Q3_K_S fits at 33GB.
+    # UD- (Unsloth Dynamic) recovers quality better than plain Q3 for MoE.
+    model_id: "unsloth/Qwen3-Coder-Next-GGUF::Qwen3-Coder-Next-UD-Q3_K_S.gguf"
+    alias: "qwen3-coder-next"
+
+  - name: "llamacpp-qwen25coder14b"
+    backend: llamacpp
+    # Dense 14B (no MoE) — counter-data-point. All 14B params active per token,
+    # higher precision (Q6_K) for the size. Half the disk of Qwen3-Coder-30B.
+    # NOTE: failed 3/3 in early tests — Qwen2.5-Coder isn't trained for agentic loops.
+    model_id: "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF::Qwen2.5-Coder-14B-Instruct-Q6_K.gguf"
+    alias: "qwen25-coder-14b"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Added 2026-05-13: higher Qwen quants + DeepSeek for agentic-lineage comparison
+  # ───────────────────────────────────────────────────────────────────────────
+  - name: "llamacpp-qwen3coder30b-q5kxl"
+    backend: llamacpp
+    # UD-Q5_K_XL: ~20.25 GB. Tests whether higher precision shifts solve efficiency
+    # vs the UD-Q4_K_XL baseline (16.45 GB, 60.4s median). Hypothesis: same speed
+    # (compute bound by active params, not quant), marginal quality gain.
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q5_K_XL.gguf"
+    alias: "qwen3-coder-q5"
+
+  - name: "llamacpp-qwen3coder30b-q6kxl"
+    backend: llamacpp
+    # UD-Q6_K_XL: ~24.53 GB. Upper bound of "what fits on 48 GB with headroom."
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL.gguf"
+    alias: "qwen3-coder-q6"
+
+  - name: "llamacpp-deepseekcoderv2lite"
+    backend: llamacpp
+    # DeepSeek-Coder-V2-Lite-Instruct (16B/2.4B MoE). Different model lineage.
+    # WARNING: model card does NOT mention tool-calling support. Same risk profile
+    # as Qwen2.5-Coder-14B (might emit prose explanations of tool calls instead
+    # of structured tool_use blocks). Pre-flight curl-probe via /v1/messages with
+    # a tool definition BEFORE burning 3 trials. Q6_K gives it the best precision
+    # shot — if it can't tool-call at Q6, it can't tool-call.
+    model_id: "bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF::DeepSeek-Coder-V2-Lite-Instruct-Q6_K.gguf"
+    alias: "deepseek-coder-v2-lite"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ROUND 2 — Edit `backend` below to match the Round 1 winner, then run again.
+# Suggested 4-model lineup; swap freely.
+# ─────────────────────────────────────────────────────────────────────────────
+round2:
+  - name: "r2-qwen3coder30b"
+    backend: llamacpp    # <-- replace with round 1 winner
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf"
+    alias: "qwen3-coder-30b"
+
+  - name: "r2-qwen25coder14b"
+    backend: llamacpp
+    model_id: "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF:Q6_K"
+    alias: "qwen25-coder-14b"
+
+  - name: "r2-qwen25coder32b"
+    backend: llamacpp
+    model_id: "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF:Q4_K_M"
+    alias: "qwen25-coder-32b"
+
+  - name: "r2-deepseekcoderv2lite"
+    backend: llamacpp
+    model_id: "bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:Q4_K_M"
+    alias: "deepseek-coder-v2-lite"

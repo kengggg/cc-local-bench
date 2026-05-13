@@ -1,0 +1,29 @@
+{
+  "sample_count": 5,
+  "sample_interval_s": 1.0,
+  "duration_s": 5.0,
+  "cpu_mw": {
+    "avg": 777,
+    "max": 2616,
+    "min": 227
+  },
+  "gpu_mw": {
+    "avg": 4,
+    "max": 7,
+    "min": 0
+  },
+  "ane_mw": {
+    "avg": 0,
+    "max": 0,
+    "min": 0
+  },
+  "package_mw": {
+    "avg": 781,
+    "max": 2618,
+    "min": 234
+  },
+  "energy_joules": 3.91,
+  "energy_wh": 0.0011,
+  "thermal_pressure_max": null,
+  "baseline_subtracted": false
+}

@@ -1,0 +1,47 @@
+{
+  "combo": "llamacpp-qwen3coder30b-q5kxl",
+  "backend": "llamacpp",
+  "model_id": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-UD-Q5_K_XL.gguf",
+  "alias": "qwen3-coder-q5",
+  "trial": 3,
+  "wall_clock_seconds": 63.341182000,
+  "claude_exit_code": 0,
+  "claude_timed_out": false,
+  "pytest_exit_code": 0,
+  "tests_passed": 6,
+  "tests_failed": 0,
+  "all_green": true,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-llamacpp-qwen3coder30b-q5kxl-t3-XXXX.llPhy1BUYx",
+  "power": {
+    "sample_count": 63,
+    "sample_interval_s": 1.0,
+    "duration_s": 63.0,
+    "cpu_mw": {
+      "avg": 826,
+      "max": 4156,
+      "min": 109
+    },
+    "gpu_mw": {
+      "avg": 23214,
+      "max": 32025,
+      "min": 1755
+    },
+    "ane_mw": {
+      "avg": 0,
+      "max": 0,
+      "min": 0
+    },
+    "package_mw": {
+      "avg": 24039,
+      "max": 32398,
+      "min": 3671
+    },
+    "energy_joules": 1514.48,
+    "energy_wh": 0.4207,
+    "thermal_pressure_max": null,
+    "baseline_subtracted": true,
+    "delta_package_mw_avg": 23339,
+    "delta_energy_joules": 1470.36,
+    "baseline_package_mw_avg": 700
+  }
+}

@@ -306,6 +306,30 @@ def compute_findings(combos):
                     ),
                 })
 
+    # Destructive cleanup: cc_exit=0 (model thinks it succeeded) but pytest
+    # collected zero tests (test file deleted / renamed by the agent).
+    # This is the "model achieves the wrong objective" failure pattern.
+    for c in combos:
+        offending = [
+            t for t in c["trials"]
+            if (t.get("claude_exit_code") == 0
+                and t.get("pytest_exit_code") not in (0, None)
+                and t.get("tests_passed", 0) == 0
+                and t.get("tests_failed", 0) == 0)
+        ]
+        if offending:
+            ts = ", ".join(f"trial {t['trial']}" for t in offending)
+            findings.append({
+                "kind": "yellow",
+                "title": f"Destructive cleanup: {c['name']}",
+                "body": (
+                    f"{ts} exited cleanly (model declared success) but pytest "
+                    f"collected zero tests. The agent deleted the test or implementation "
+                    f"file as part of 'cleanup' after verifying its solution via a "
+                    f"hand-rolled script. Higher-precision quants seem more prone to this."
+                ),
+            })
+
     return findings
 
 

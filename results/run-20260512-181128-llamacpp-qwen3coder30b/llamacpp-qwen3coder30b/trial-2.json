@@ -1,0 +1,15 @@
+{
+  "combo": "llamacpp-qwen3coder30b",
+  "backend": "llamacpp",
+  "model_id": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf",
+  "alias": "qwen3-coder",
+  "trial": 2,
+  "wall_clock_seconds": 304.509180000,
+  "claude_exit_code": 1,
+  "claude_timed_out": false,
+  "pytest_exit_code": 1,
+  "tests_passed": 0,
+  "tests_failed": 6,
+  "all_green": false,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-llamacpp-qwen3coder30b-t2-XXXX.xArsniBhny"
+}

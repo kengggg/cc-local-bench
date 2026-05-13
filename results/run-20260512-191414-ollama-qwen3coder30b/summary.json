@@ -1,0 +1,19 @@
+[
+  {
+    "name": "ollama-qwen3coder30b",
+    "backend": "ollama",
+    "model_id": "qwen3-coder:30b",
+    "meta": {
+      "cold_start_seconds": 5.429022,
+      "endpoint": "http://localhost:11434",
+      "model": "qwen3-coder:30b"
+    },
+    "median_wall": 79.593964,
+    "min_wall": 77.972912,
+    "max_wall": 118.718597,
+    "green_rate": 1.0,
+    "median_turns": 22,
+    "median_tool_calls": 7,
+    "cold_start": 5.429022
+  }
+]

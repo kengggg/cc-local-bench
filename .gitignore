@@ -1,0 +1,17 @@
+# macOS noise
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Editor temp
+*.swp
+*~
+.idea/
+.vscode/
+
+# Don't commit any in-flight HF cache symlinks if they appear
+*.downloadInProgress

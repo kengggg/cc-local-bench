@@ -1,0 +1,15 @@
+{
+  "combo": "llamacpp-qwen25coder14b",
+  "backend": "llamacpp",
+  "model_id": "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF::Qwen2.5-Coder-14B-Instruct-Q6_K.gguf",
+  "alias": "qwen25-coder-14b",
+  "trial": 3,
+  "wall_clock_seconds": 31.675478000,
+  "claude_exit_code": 0,
+  "claude_timed_out": false,
+  "pytest_exit_code": 1,
+  "tests_passed": 0,
+  "tests_failed": 6,
+  "all_green": false,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-llamacpp-qwen25coder14b-t3-XXXX.0m10B83l1X"
+}

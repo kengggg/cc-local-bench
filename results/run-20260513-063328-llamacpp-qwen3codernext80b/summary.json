@@ -1,0 +1,19 @@
+[
+  {
+    "name": "llamacpp-qwen3codernext80b",
+    "backend": "llamacpp",
+    "model_id": "unsloth/Qwen3-Coder-Next-GGUF::Qwen3-Coder-Next-UD-Q3_K_S.gguf",
+    "meta": {
+      "cold_start_seconds": 6.124182,
+      "endpoint": "http://localhost:8080",
+      "model": "qwen3-coder-next"
+    },
+    "median_wall": 65.985114,
+    "min_wall": 61.202256,
+    "max_wall": 129.187858,
+    "green_rate": 1.0,
+    "median_turns": 13,
+    "median_tool_calls": 5,
+    "cold_start": 6.124182
+  }
+]

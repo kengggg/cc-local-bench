@@ -1,0 +1,19 @@
+[
+  {
+    "name": "ollama-gptoss20b",
+    "backend": "ollama",
+    "model_id": "gpt-oss:20b",
+    "meta": {
+      "cold_start_seconds": 5.092227,
+      "endpoint": "http://localhost:11434",
+      "model": "gpt-oss:20b"
+    },
+    "median_wall": 68.663381,
+    "min_wall": 43.035799,
+    "max_wall": 137.977061,
+    "green_rate": 1.0,
+    "median_turns": 25,
+    "median_tool_calls": 8,
+    "cold_start": 5.092227
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "name": "llamacpp-qwen25coder14b",
+    "backend": "llamacpp",
+    "model_id": "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF::Qwen2.5-Coder-14B-Instruct-Q6_K.gguf",
+    "meta": {
+      "cold_start_seconds": 4.098399,
+      "endpoint": "http://localhost:8080",
+      "model": "qwen25-coder-14b"
+    },
+    "median_wall": 31.675478,
+    "min_wall": 19.9441,
+    "max_wall": 47.982139,
+    "green_rate": 0.0,
+    "median_turns": 1,
+    "median_tool_calls": 0,
+    "cold_start": 4.098399
+  }
+]

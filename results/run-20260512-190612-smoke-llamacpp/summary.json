@@ -1,0 +1,19 @@
+[
+  {
+    "name": "smoke-llamacpp-qwen05b",
+    "backend": "llamacpp",
+    "model_id": "bartowski/Qwen2.5-0.5B-Instruct-GGUF::Qwen2.5-0.5B-Instruct-Q4_K_M.gguf",
+    "meta": {
+      "cold_start_seconds": 2.072812,
+      "endpoint": "http://localhost:8080",
+      "model": "qwen-smoke"
+    },
+    "median_wall": 3.941256,
+    "min_wall": 3.941256,
+    "max_wall": 3.941256,
+    "green_rate": 0.0,
+    "median_turns": 1,
+    "median_tool_calls": 0,
+    "cold_start": 2.072812
+  }
+]

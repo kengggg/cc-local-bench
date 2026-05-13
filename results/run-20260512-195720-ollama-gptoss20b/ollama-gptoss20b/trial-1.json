@@ -1,0 +1,15 @@
+{
+  "combo": "ollama-gptoss20b",
+  "backend": "ollama",
+  "model_id": "gpt-oss:20b",
+  "alias": "gpt-oss:20b",
+  "trial": 1,
+  "wall_clock_seconds": 43.035799000,
+  "claude_exit_code": 0,
+  "claude_timed_out": false,
+  "pytest_exit_code": 0,
+  "tests_passed": 6,
+  "tests_failed": 0,
+  "all_green": true,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-ollama-gptoss20b-t1-XXXX.3PNGkizYaY"
+}

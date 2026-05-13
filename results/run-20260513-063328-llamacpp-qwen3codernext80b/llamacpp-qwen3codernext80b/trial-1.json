@@ -1,0 +1,15 @@
+{
+  "combo": "llamacpp-qwen3codernext80b",
+  "backend": "llamacpp",
+  "model_id": "unsloth/Qwen3-Coder-Next-GGUF::Qwen3-Coder-Next-UD-Q3_K_S.gguf",
+  "alias": "qwen3-coder-next",
+  "trial": 1,
+  "wall_clock_seconds": 65.985114000,
+  "claude_exit_code": 0,
+  "claude_timed_out": false,
+  "pytest_exit_code": 0,
+  "tests_passed": 6,
+  "tests_failed": 0,
+  "all_green": true,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-llamacpp-qwen3codernext80b-t1-XXXX.X6I1zL6HsS"
+}

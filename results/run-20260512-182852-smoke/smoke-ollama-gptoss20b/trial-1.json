@@ -1,0 +1,15 @@
+{
+  "combo": "smoke-ollama-gptoss20b",
+  "backend": "ollama",
+  "model_id": "gpt-oss:20b",
+  "alias": "gpt-oss",
+  "trial": 1,
+  "wall_clock_seconds": 1.073870000,
+  "claude_exit_code": 1,
+  "claude_timed_out": false,
+  "pytest_exit_code": 1,
+  "tests_passed": 0,
+  "tests_failed": 6,
+  "all_green": false,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-smoke-ollama-gptoss20b-t1-XXXX.ruIsdufRvJ"
+}

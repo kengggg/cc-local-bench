@@ -1,0 +1,19 @@
+[
+  {
+    "name": "smoke-ollama-gptoss20b",
+    "backend": "ollama",
+    "model_id": "gpt-oss:20b",
+    "meta": {
+      "cold_start_seconds": 4.055905,
+      "endpoint": "http://localhost:11434",
+      "model": "gpt-oss:20b"
+    },
+    "median_wall": 39.733476,
+    "min_wall": 39.733476,
+    "max_wall": 39.733476,
+    "green_rate": 1.0,
+    "median_turns": 19,
+    "median_tool_calls": 6,
+    "cold_start": 4.055905
+  }
+]

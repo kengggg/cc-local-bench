@@ -1,0 +1,99 @@
+# cc-local-bench configuration
+# Each entry under `runs` defines one (backend, model) combination.
+# Each combo is run `trials` times; the median wall-clock is reported.
+
+# Number of trials per combo. Local inference is noisy — keep at 3.
+trials: 3
+
+# Hard timeout per Claude Code invocation (seconds). 10 min = catches stuck loops.
+timeout_seconds: 600
+
+# Cap on agentic turns. Generous enough for legitimate solves, tight enough to
+# fail-fast on models that can't drive the loop.
+max_turns: 25
+
+# The fixed agentic prompt sent to claude -p (a deliberately concise instruction).
+prompt: |
+  The tests in test_phone_utils.py are currently failing.
+  Implement format_phone_number in phone_utils.py so all 6 tests pass.
+  Run `pytest -q` after each change. Don't stop until every test is green.
+
+# Which tools Claude Code is allowed to use. Keep narrow so we're benchmarking
+# the agentic loop, not the model's ability to discover unusual tools.
+allowed_tools: "Read,Write,Edit,Bash"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SMOKE — fast end-to-end harness check. Single trial, short timeout, tiny model.
+# Goal: validate backend lifecycle + claude --bare wiring + pytest + score.py
+# without burning 30 min on the real benchmark. The model only needs to drive
+# the loop (i.e. emit at least one tool_use); it does not need to solve the task.
+#
+# Run with: ./run.sh smoke
+# ─────────────────────────────────────────────────────────────────────────────
+smoke:
+  - name: "smoke-ollama-gptoss20b"
+    backend: ollama
+    model_id: "gpt-oss:20b"
+    alias: "gpt-oss:20b"      # MUST match the exact Ollama tag — Ollama's /v1 endpoint
+                              # does NOT fuzzy-match (only its native /api/* does).
+    trials: 1
+    timeout_seconds: 180      # gpt-oss:20b finishes the loop in ~80–120s on M4 Pro
+    max_turns: 12
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ROUND 1 — Same reference model across 4 inference runtimes.
+# Reference model: Qwen3-Coder-30B-A3B (MoE, 3B active, ~17GB at Q4).
+# Adjust the `model_id` strings if your local tags differ.
+# ─────────────────────────────────────────────────────────────────────────────
+round1:
+  - name: "ollama-qwen3coder30b"
+    backend: ollama
+    model_id: "qwen3-coder:30b"
+    alias: "qwen3-coder:30b"   # Ollama's /v1 needs the exact tag (no fuzzy match)
+
+  - name: "llamacpp-qwen3coder30b"
+    backend: llamacpp
+    # Formats supported by backends/llamacpp.sh:
+    #   <hf_repo>                       — repo default
+    #   <hf_repo>:<quant>               — llama-server preset shortcut
+    #   <hf_repo>::<filename.gguf>      — explicit file (use when ":quant" 404s)
+    # unsloth's preset shortcut 404s for this repo, so we pin the file explicitly.
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf"
+    alias: "qwen3-coder"
+
+  - name: "lmstudio-gguf-qwen3coder30b"
+    backend: lmstudio_gguf
+    # Must be already downloaded via `lms get <id> --gguf`.
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF"
+    alias: "qwen3-coder"
+
+  - name: "lmstudio-mlx-qwen3coder30b"
+    backend: lmstudio_mlx
+    # Must be already downloaded via `lms get <id> --mlx`.
+    model_id: "mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit"
+    alias: "qwen3-coder"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ROUND 2 — Edit `backend` below to match the Round 1 winner, then run again.
+# Suggested 4-model lineup; swap freely.
+# ─────────────────────────────────────────────────────────────────────────────
+round2:
+  - name: "r2-qwen3coder30b"
+    backend: llamacpp    # <-- replace with round 1 winner
+    model_id: "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF::Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf"
+    alias: "qwen3-coder-30b"
+
+  - name: "r2-qwen25coder14b"
+    backend: llamacpp
+    model_id: "bartowski/Qwen2.5-Coder-14B-Instruct-GGUF:Q6_K"
+    alias: "qwen25-coder-14b"
+
+  - name: "r2-qwen25coder32b"
+    backend: llamacpp
+    model_id: "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF:Q4_K_M"
+    alias: "qwen25-coder-32b"
+
+  - name: "r2-deepseekcoderv2lite"
+    backend: llamacpp
+    model_id: "bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:Q4_K_M"
+    alias: "deepseek-coder-v2-lite"

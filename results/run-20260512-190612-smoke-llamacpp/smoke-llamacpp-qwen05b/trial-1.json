@@ -1,0 +1,15 @@
+{
+  "combo": "smoke-llamacpp-qwen05b",
+  "backend": "llamacpp",
+  "model_id": "bartowski/Qwen2.5-0.5B-Instruct-GGUF::Qwen2.5-0.5B-Instruct-Q4_K_M.gguf",
+  "alias": "qwen-smoke",
+  "trial": 1,
+  "wall_clock_seconds": 3.941256000,
+  "claude_exit_code": 0,
+  "claude_timed_out": false,
+  "pytest_exit_code": 1,
+  "tests_passed": 0,
+  "tests_failed": 6,
+  "all_green": false,
+  "work_dir": "/var/folders/fs/jrkkr9gn6_x287hmdwspdzd80000gn/T/ccbench-smoke-llamacpp-qwen05b-t1-XXXX.dd7CcJGNgI"
+}

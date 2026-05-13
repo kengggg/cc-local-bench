@@ -97,7 +97,57 @@ def parse_combo_dir(combo_dir: Path):
         return None
     meta_path = combo_dir / "backend_meta.json"
     meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+    idle_path = combo_dir / "idle_baseline.json"
+    idle = json.loads(idle_path.read_text()) if idle_path.exists() else None
     walls = [t["wall_clock_seconds"] for t in trials]
+
+    # Power aggregation (per-trial → median across trials), only if data present.
+    energy_js = [t.get("power", {}).get("energy_joules") for t in trials if t.get("power")]
+    energy_js = [e for e in energy_js if e is not None]
+    delta_energy_js = [
+        t.get("power", {}).get("delta_energy_joules")
+        for t in trials if t.get("power")
+    ]
+    delta_energy_js = [e for e in delta_energy_js if e is not None]
+    package_avg_mw = [
+        t.get("power", {}).get("package_mw", {}).get("avg")
+        for t in trials if t.get("power")
+    ]
+    package_avg_mw = [v for v in package_avg_mw if v is not None]
+    gpu_avg_mw = [
+        t.get("power", {}).get("gpu_mw", {}).get("avg")
+        for t in trials if t.get("power")
+    ]
+    gpu_avg_mw = [v for v in gpu_avg_mw if v is not None]
+    cpu_avg_mw = [
+        t.get("power", {}).get("cpu_mw", {}).get("avg")
+        for t in trials if t.get("power")
+    ]
+    cpu_avg_mw = [v for v in cpu_avg_mw if v is not None]
+
+    has_power = bool(energy_js)
+    power_summary = None
+    if has_power:
+        power_summary = {
+            "median_energy_joules": statistics.median(energy_js),
+            "median_energy_wh": statistics.median(energy_js) / 3600,
+            "median_delta_energy_joules": (
+                statistics.median(delta_energy_js) if delta_energy_js else None
+            ),
+            "median_package_mw_avg": (
+                int(statistics.median(package_avg_mw)) if package_avg_mw else None
+            ),
+            "median_gpu_mw_avg": (
+                int(statistics.median(gpu_avg_mw)) if gpu_avg_mw else None
+            ),
+            "median_cpu_mw_avg": (
+                int(statistics.median(cpu_avg_mw)) if cpu_avg_mw else None
+            ),
+            "idle_package_mw_avg": (
+                idle.get("package_mw", {}).get("avg") if idle else None
+            ),
+        }
+
     return {
         "name": combo_dir.name,
         "backend": trials[0]["backend"],
@@ -116,6 +166,8 @@ def parse_combo_dir(combo_dir: Path):
         "total_tool_calls": sum(
             (Counter(t.get("tool_calls", {})) for t in trials), Counter()
         ),
+        "has_power": has_power,
+        "power": power_summary,
     }
 
 
@@ -180,35 +232,60 @@ def compute_findings(combos):
     greens = [c for c in combos if c["green_count"] == c["trials_count"] and c["trials_count"] > 0]
 
     if greens:
-        fastest = min(greens, key=lambda c: c["median_wall"])
-        tightest = min(greens, key=lambda c: c["wall_spread"])
-        if fastest["name"] == tightest["name"]:
+        # Pareto leaders — separate axes, let the reader pick by their priority.
+        # We DON'T collapse to a single "Best overall" because the right answer
+        # depends on use case (latency-sensitive vs travel-on-battery vs reliability).
+        leaders = {}
+        leaders["speed"] = min(greens, key=lambda c: c["median_wall"])
+        leaders["reliability"] = min(greens, key=lambda c: c["wall_spread"])
+        greens_with_power = [c for c in greens if c["has_power"] and c["power"]]
+        if greens_with_power:
+            leaders["efficiency"] = min(
+                greens_with_power, key=lambda c: c["power"]["median_energy_joules"]
+            )
+
+        findings.append({
+            "kind": "green",
+            "title": "Speed leader",
+            "body": (
+                f"<code>{leaders['speed']['name']}</code> has the lowest median wall "
+                f"({leaders['speed']['median_wall']:.1f} s) among 100% green combos."
+            ),
+        })
+        findings.append({
+            "kind": "green",
+            "title": "Reliability leader",
+            "body": (
+                f"<code>{leaders['reliability']['name']}</code> has the tightest "
+                f"run-to-run spread ({leaders['reliability']['wall_spread']:.1f} s) — "
+                f"most predictable wall time."
+            ),
+        })
+        if "efficiency" in leaders:
+            eff = leaders["efficiency"]
             findings.append({
                 "kind": "green",
-                "title": "Best overall",
+                "title": "Efficiency leader",
                 "body": (
-                    f"<code>{fastest['name']}</code> wins both speed "
-                    f"(median {fastest['median_wall']:.1f} s) AND reliability "
-                    f"(spread {fastest['wall_spread']:.1f} s) among 100% green combos."
+                    f"<code>{eff['name']}</code> uses the least energy per solve "
+                    f"(median {eff['power']['median_energy_joules']:.0f} J "
+                    f"≈ {eff['power']['median_energy_wh']*1000:.0f} mWh) among 100% green combos."
                 ),
             })
-        else:
-            findings.append({
-                "kind": "green",
-                "title": "Speed leader",
-                "body": (
-                    f"<code>{fastest['name']}</code> has the lowest median wall "
-                    f"({fastest['median_wall']:.1f} s) among 100% green combos."
-                ),
-            })
-            findings.append({
-                "kind": "green",
-                "title": "Reliability leader",
-                "body": (
-                    f"<code>{tightest['name']}</code> has the tightest run-to-run spread "
-                    f"({tightest['wall_spread']:.1f} s) — most predictable wall time."
-                ),
-            })
+
+        # Multi-axis dominance callout
+        wins_per_combo = Counter(c["name"] for c in leaders.values())
+        for name, wins in wins_per_combo.items():
+            if wins >= 2:
+                axes = [k for k, v in leaders.items() if v["name"] == name]
+                findings.append({
+                    "kind": "green",
+                    "title": "Multi-axis champion",
+                    "body": (
+                        f"<code>{name}</code> wins {wins} of {len(leaders)} axes "
+                        f"({', '.join(axes)}). The most defensible default pick."
+                    ),
+                })
 
     for c in combos:
         if c["green_count"] > 0 and c["median_wall"] > 0:
@@ -299,6 +376,30 @@ def render_combo_card(c):
         else ("warn" if c["green_count"] > 0 else "bad")
     )
     badge = f'<span class="badge {green_class}">{c["green_count"]}/{c["trials_count"]} green</span>'
+
+    # Optional energy stat (only when --with-power data exists)
+    energy_block = ""
+    if c["has_power"] and c["power"]:
+        p = c["power"]
+        delta_note = ""
+        if p.get("median_delta_energy_joules") is not None and p.get("idle_package_mw_avg"):
+            delta_note = (
+                f' <span class="muted">(Δ {p["median_delta_energy_joules"]:.0f} J '
+                f'above {p["idle_package_mw_avg"]/1000:.1f} W idle floor)</span>'
+            )
+        gpu_cpu_note = ""
+        if p.get("median_gpu_mw_avg") and p.get("median_cpu_mw_avg"):
+            gpu_cpu_note = (
+                f'<div class="muted">GPU {p["median_gpu_mw_avg"]/1000:.1f} W avg · '
+                f'CPU {p["median_cpu_mw_avg"]/1000:.1f} W avg</div>'
+            )
+        energy_block = f"""
+    <div class="stat">
+      <div class="stat-label">Energy per solve (median)</div>
+      <div class="stat-val">{p['median_energy_joules']:.0f} J · {p['median_energy_wh']*1000:.0f} mWh{delta_note}</div>
+      {gpu_cpu_note}
+    </div>"""
+
     return f"""
 <section class="combo-card" id="combo-{esc(c['name'])}">
   <header>
@@ -326,7 +427,7 @@ def render_combo_card(c):
     <div class="stat">
       <div class="stat-label">Median turns / tool calls</div>
       <div class="stat-val">{c['median_turns']} / {c['median_tool_calls']}</div>
-    </div>
+    </div>{energy_block}
   </div>
   <div class="chart-row">
     <div class="chart-col">
@@ -398,6 +499,7 @@ def markdown_to_html(md):
 # ── Page assembly ────────────────────────────────────────────────────────────
 
 def render_html(combos, findings, discussion_md, run_history, repo_slug):
+    any_power = any(c["has_power"] for c in combos)
     summary_rows = []
     for c in combos:
         green_class = (
@@ -405,7 +507,14 @@ def render_html(combos, findings, discussion_md, run_history, repo_slug):
             else ("warn" if c["green_count"] > 0 else "bad")
         )
         cold = f"{c['cold_start']:.1f} s" if c.get("cold_start") is not None else "—"
-        summary_rows.append(
+        if c["has_power"] and c["power"]:
+            energy_cell = (
+                f'{c["power"]["median_energy_joules"]:.0f} J '
+                f'<span class="muted">({c["power"]["median_energy_wh"]*1000:.0f} mWh)</span>'
+            )
+        else:
+            energy_cell = '<span class="muted">—</span>'
+        row = (
             f'<tr>'
             f'<td><a href="#combo-{esc(c["name"])}"><code>{esc(c["name"])}</code></a></td>'
             f'<td>{esc(c["backend"])}</td>'
@@ -415,14 +524,24 @@ def render_html(combos, findings, discussion_md, run_history, repo_slug):
             f'<td>{c["median_turns"]}</td>'
             f'<td>{c["median_tool_calls"]}</td>'
             f'<td>{cold}</td>'
-            f'</tr>'
         )
-    summary_table = (
-        '<table class="summary"><thead><tr>'
+        if any_power:
+            row += f'<td>{energy_cell}</td>'
+        row += '</tr>'
+        summary_rows.append(row)
+
+    summary_header = (
         '<th>Combo</th><th>Backend</th><th>Green</th>'
         '<th>Median wall</th><th>Spread</th>'
         '<th>Med. turns</th><th>Med. tools</th><th>Cold-start</th>'
-        '</tr></thead><tbody>'
+    )
+    if any_power:
+        summary_header += '<th>Med. energy</th>'
+
+    summary_table = (
+        '<table class="summary"><thead><tr>'
+        + summary_header
+        + '</tr></thead><tbody>'
         + "".join(summary_rows) + "</tbody></table>"
     )
 

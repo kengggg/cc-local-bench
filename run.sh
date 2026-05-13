@@ -2,9 +2,16 @@
 # run.sh — Orchestrate cc-local-bench across (backend, model) combos.
 #
 # Usage:
-#   ./run.sh round1            # run Round 1 (runtime shootout)
-#   ./run.sh round2            # run Round 2 (model shootout on winning runtime)
-#   ./run.sh <run_name>        # run a single named combo from config.yaml
+#   ./run.sh round1                          # run Round 1 (runtime shootout)
+#   ./run.sh round2                          # run Round 2 (model shootout on winning runtime)
+#   ./run.sh <run_name>                      # run a single named combo from config.yaml
+#   ./run.sh --with-power <run_name>         # ALSO capture per-trial power via powermetrics
+#
+# --with-power: macOS-only. Requires sudo (powermetrics needs root). The script
+# refreshes sudo in the background for the run's duration. Plug in for cleanest
+# numbers; on-battery is warned-but-allowed. Per-trial samples land in
+# trial-N.power.txt (raw) and trial-N.power.json (aggregated); idle baseline per
+# combo lands in idle_baseline.{txt,json}.
 #
 # Output: results/run-<timestamp>/{combo}/{trial}.json + server_log.txt
 
@@ -33,6 +40,36 @@ fi
 
 CONFIG="$ROOT/config.yaml"
 [[ -f "$CONFIG" ]] || fail "config.yaml not found"
+
+# ── Flag parsing (positional + --with-power) ─────────────────────────────────
+WITH_POWER=0
+POSITIONAL=()
+for arg in "$@"; do
+    case "$arg" in
+        --with-power) WITH_POWER=1 ;;
+        --*) fail "unknown flag: $arg" ;;
+        *) POSITIONAL+=("$arg") ;;
+    esac
+done
+set -- "${POSITIONAL[@]}"
+
+# ── Power-measurement pre-flight (when --with-power is set) ──────────────────
+if [[ $WITH_POWER -eq 1 ]]; then
+    [[ "$(uname)" == "Darwin" ]] || fail "--with-power is macOS-only (powermetrics)"
+    command -v powermetrics >/dev/null || fail "powermetrics not on PATH"
+    log "Power measurement enabled. Authenticating sudo..."
+    sudo -v || fail "sudo authentication failed"
+    # Background sudo refresh so long runs don't lapse mid-trial
+    ( while true; do sudo -n -v 2>/dev/null || break; sleep 50; done ) &
+    SUDO_KEEPALIVE_PID=$!
+    trap 'kill $SUDO_KEEPALIVE_PID 2>/dev/null || true' EXIT
+    # AC-power check (non-fatal warn)
+    if ! pmset -g batt | grep -q 'AC Power'; then
+        warn "On battery — power numbers will include battery management noise. Plug in for cleanest measurement."
+    else
+        log "AC power confirmed."
+    fi
+fi
 
 ROUND="${1:-round1}"
 RUN_TS="$(date +%Y%m%d-%H%M%S)"
@@ -108,6 +145,17 @@ for i in $(seq 0 $((N_COMBOS - 1))); do
     echo "{\"cold_start_seconds\": $COLD_DURATION, \"endpoint\": \"$BACKEND_ENDPOINT\", \"model\": \"$BACKEND_MODEL_NAME\"}" \
         > "$COMBO_DIR/backend_meta.json"
 
+    # ── Idle baseline (when --with-power, once per combo, after model loaded) ──
+    if [[ $WITH_POWER -eq 1 ]]; then
+        log "Capturing 5s idle baseline (model loaded, no inference)..."
+        IDLE_RAW="$COMBO_DIR/idle_baseline.txt"
+        IDLE_JSON="$COMBO_DIR/idle_baseline.json"
+        sudo -n powermetrics --samplers cpu_power -i 1000 -n 5 \
+            >"$IDLE_RAW" 2>/dev/null || warn "idle baseline capture failed"
+        python3 "$ROOT/scripts/parse_powermetrics.py" "$IDLE_RAW" \
+            >"$IDLE_JSON" 2>/dev/null || warn "idle baseline parse failed"
+    fi
+
     # ── Trials ────────────────────────────────────────────────────────────
     for t in $(seq 1 "$TRIALS"); do
         log "─── Trial $t/$TRIALS ───"
@@ -118,6 +166,18 @@ for i in $(seq 0 $((N_COMBOS - 1))); do
         TRIAL_OUT="$COMBO_DIR/trial-${t}.json"
         TRIAL_STREAM="$COMBO_DIR/trial-${t}.stream.ndjson"
         TRIAL_PYTEST="$COMBO_DIR/trial-${t}.pytest.txt"
+        TRIAL_POWER_RAW="$COMBO_DIR/trial-${t}.power.txt"
+        TRIAL_POWER_JSON="$COMBO_DIR/trial-${t}.power.json"
+
+        # Start powermetrics sidecar (background, sudo). It will be SIGINT-killed
+        # after claude exits so it can flush its final samples cleanly.
+        PM_PID=""
+        if [[ $WITH_POWER -eq 1 ]]; then
+            sudo -n powermetrics --samplers cpu_power -i 1000 \
+                >"$TRIAL_POWER_RAW" 2>/dev/null &
+            PM_PID=$!
+            sleep 1.2  # let it warm up so we don't miss the first sample
+        fi
 
         START=$(date +%s.%N)
         # Claude Code uses the OpenAI-compatible endpoint at $BACKEND_ENDPOINT.
@@ -159,6 +219,15 @@ for i in $(seq 0 $((N_COMBOS - 1))); do
         END=$(date +%s.%N)
         WALL=$(echo "$END - $START" | bc -l)
 
+        # Stop powermetrics sidecar + parse
+        if [[ $WITH_POWER -eq 1 && -n "$PM_PID" ]]; then
+            sudo -n kill -INT "$PM_PID" 2>/dev/null || true
+            wait "$PM_PID" 2>/dev/null || true
+            python3 "$ROOT/scripts/parse_powermetrics.py" "$TRIAL_POWER_RAW" \
+                --baseline "$COMBO_DIR/idle_baseline.json" \
+                >"$TRIAL_POWER_JSON" 2>/dev/null || warn "power parse failed for trial $t"
+        fi
+
         # Verify final state by running pytest on the work dir.
         # --no-project: don't treat $WORK_DIR as a uv project.
         # --isolated:   hermetic env, won't inherit site-packages from a base Python.
@@ -191,7 +260,22 @@ for i in $(seq 0 $((N_COMBOS - 1))); do
   "work_dir": "$WORK_DIR"
 }
 EOF
-        log "  wall=${WALL}s  cc_exit=$CC_EXIT  pytest: ${PASS_COUNT}p/${FAIL_COUNT}f"
+
+        # Merge power data into trial JSON if present
+        if [[ -f "$TRIAL_POWER_JSON" ]] && jq -e . "$TRIAL_POWER_JSON" >/dev/null 2>&1; then
+            tmp_trial="$(mktemp)"
+            jq --slurpfile p "$TRIAL_POWER_JSON" '.power = $p[0]' "$TRIAL_OUT" >"$tmp_trial" \
+                && mv "$tmp_trial" "$TRIAL_OUT" \
+                || rm -f "$tmp_trial"
+        fi
+
+        # Log line includes energy when available
+        if [[ -f "$TRIAL_POWER_JSON" ]] && jq -e .energy_joules "$TRIAL_POWER_JSON" >/dev/null 2>&1; then
+            ENERGY_J=$(jq -r '.energy_joules // "?"' "$TRIAL_POWER_JSON")
+            log "  wall=${WALL}s  cc_exit=$CC_EXIT  pytest: ${PASS_COUNT}p/${FAIL_COUNT}f  energy=${ENERGY_J}J"
+        else
+            log "  wall=${WALL}s  cc_exit=$CC_EXIT  pytest: ${PASS_COUNT}p/${FAIL_COUNT}f"
+        fi
     done
 
     backend_stop

@@ -164,6 +164,52 @@ Hard requirements on PATH (checked by `run.sh` pre-flight):
 - `jq`
 - `uv` (`brew install uv`) — manages Python + pytest for trial scoring and `score.py`. The harness invokes them via `uv run --no-project --with pytest`, so there's no venv to maintain and no system pytest needed.
 - GNU `timeout` — `brew install coreutils` on macOS (provides `gtimeout`). `run.sh` auto-detects either binary in pre-flight; missing this caused silent 0-byte stream files in early runs.
+- `powermetrics` — macOS-only. Only required when running with `--with-power`. Requires `sudo`; the harness authenticates once and refreshes in the background.
+
+## Power measurement (`--with-power`)
+
+Opt-in flag that adds per-trial energy data via `powermetrics`:
+
+```bash
+sudo -v && ./run.sh --with-power llamacpp-qwen3coder30b
+```
+
+What it does:
+1. Authenticates `sudo` once, spawns a background refresher so the auth doesn't lapse during long runs.
+2. Warns if you're on battery (numbers will include battery management noise — plug in for cleanest measurement).
+3. Per combo: captures a 5-second idle baseline AFTER the model is loaded but BEFORE the first trial. Written to `idle_baseline.{txt,json}`.
+4. Per trial: spawns `powermetrics --samplers cpu_power` as a sidecar at 1Hz sampling. SIGINT'd cleanly after `claude -p` exits. Raw output saved to `trial-N.power.txt`; parsed summary written to `trial-N.power.json` and merged into `trial-N.json` under the `.power` key.
+
+Per-trial power JSON schema (subset):
+```json
+{
+  "sample_count": 60,
+  "sample_interval_s": 1.0,
+  "duration_s": 60.0,
+  "cpu_mw": {"avg": 5234, "max": 12000, "min": 800},
+  "gpu_mw": {"avg": 18000, "max": 25000, "min": 200},
+  "package_mw": {"avg": 23234, "max": 35000, "min": 1100},
+  "energy_joules": 1393.0,
+  "energy_wh": 0.387,
+  "thermal_pressure_max": "Nominal",
+  "delta_energy_joules": 1330.0,
+  "baseline_subtracted": true
+}
+```
+
+Important caveats:
+- **SoC-domain power only.** `powermetrics` measures CPU+GPU+ANE inside the SoC, missing display, DC-DC conversion losses, etc. — those add ~30-40% to wall-plug watts. For a battery-impact estimate, this is the right proxy.
+- **Plugged in is mandatory for comparable numbers.** Battery management (DC-DC, charging, thermal aggression) introduces noise that swamps the inter-model signal we're trying to measure.
+- **Don't compare runs taken at different ambient temperatures.** Thermal throttling makes the same model run at lower clocks (less peak power, longer wall) when the laptop is warm.
+
+## Pareto findings
+
+When power data is present, `scripts/gen_site.py` surfaces three separate leaders rather than a single "Best overall":
+- **Speed leader** — lowest median wall among 100%-green combos
+- **Reliability leader** — tightest run-to-run spread
+- **Efficiency leader** — lowest median energy_joules
+
+A "Multi-axis champion" callout appears automatically if one combo wins ≥2 axes. The right combo for the operator depends on use case (latency vs travel-on-battery vs predictability), so we surface the axes separately and let the reader pick.
 
 Per-backend, only what you're testing:
 - `ollama`
